@@ -12,8 +12,7 @@ Things to need:
 -a working com  
 -a credit card/debit card  
 -no money(its still free)  
--these files in 1 folder  
-
+-these files in 1 folder
 
 1. main file install  
 install vscode  
@@ -41,6 +40,7 @@ setup app with redis database
 setup postgres database  
 (rmb all connection strings to add into script later)  
 change name in fly.toml  
+set secrets for database and redis if needed  
 fly deploy  
  
 
