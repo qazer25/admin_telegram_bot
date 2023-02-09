@@ -40,11 +40,11 @@ async def send_main_menu_settings(message, state):
     if type(message) == types.Message:
         await message.answer_sticker("CAACAgIAAxkBAAEc7r1j4zwg8DSy3wnrdeWHSg5qA9N5KgACJhMAAujW4hIfQm23Xqw9ZC4E")
         inline_keyboard = await build_inline_keyboard(['Service Feedback', 'Wishes', 'Remind Me SF!', 'Remember Me!'])
-        await message.answer('Welcome to Relentless 1 Bot!\n\n Please be patient with me!\nIf you feel like I\'m not listening to you, or want to get out of stuff, type /restart! \n\n If you have encountered any bugs, please inform my creator at @qazer25!', reply_markup=inline_keyboard)
+        await message.answer('Welcome to /Name/ Bot!\n\n Please be patient with me!\nIf you feel like I\'m not listening to you, or want to get out of stuff, type /restart! \n\n If you have encountered any bugs, please inform my creator at @/name/!', reply_markup=inline_keyboard)
         await (state.set_state(State_menu.starting))
     elif type(message) == types.CallbackQuery:
         inline_keyboard = await build_inline_keyboard(['Service Feedback', 'Wishes', 'Remind Me SF!', 'Remember Me!'])
-        await message.message.edit_text('Welcome to Relentless 1 Bot!\n\n Please be patient with me!\nIf you feel like I\'m not listening to you, or want to get out of stuff, type /restart! \n\nIf you have encountered any bugs, please inform my creator at @qazer25!', reply_markup=inline_keyboard)
+        await message.message.edit_text('Welcome to /Name/ Bot!\n\n Please be patient with me!\nIf you feel like I\'m not listening to you, or want to get out of stuff, type /restart! \n\nIf you have encountered any bugs, please inform my creator at @/name/!', reply_markup=inline_keyboard)
         await (state.set_state(State_menu.starting))
 
 
