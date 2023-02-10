@@ -27,9 +27,9 @@ enter *pipenv run python main.py*
 
 
 2. Asking BotFather for help
-Type @BotFather in the searchbar
-Ask him nicely to create a bot for you (google for how, there's a lot of simple guides)
-Obtain the username and HTTP API(I called it bot token)
+Type @BotFather in the searchbar  
+Ask him nicely to create a bot for you (google for how, there's a lot of simple guides)  
+Obtain the username and HTTP API(I called it bot token)  
 
 
 
