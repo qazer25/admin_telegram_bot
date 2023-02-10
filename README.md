@@ -39,6 +39,7 @@ Obtain the username and HTTP API(I called it bot token)
 set up google cloud project  
 set up google oauth stuff  
 add script from google_scripts folder  
+Edit google form id (for service feedback) and drive folder id(for wishes)  
 deploy as api exec  
 (setup GCP if needed)  
 add script id into bot_settings.py  
