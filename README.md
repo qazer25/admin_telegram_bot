@@ -50,7 +50,7 @@ add script id into bot_settings.py
 install fly on terminal  
 setup app with redis database(don't use postgres database when prompted)  
 setup postgres database  
-(rmb all connection strings to add into not_settings later)  
+(rmb all connection strings to add into secrets for fly later)  
 change name in fly.toml  
 set secrets for bot token, database, redis and script id as TOKEN, DATABASE_URL, REDIS_URL, SCRIPT_ID
 (https://fly.io/docs/reference/secrets/)  
