@@ -41,14 +41,7 @@ from database_admin_settings import *
 # Configure logging
 logging.basicConfig(level=logging.INFO)
 
-'''
-  Username:    postgres
-  Password:    p8C9PwQRxrxzj5g
-  Hostname:    r1telegram-db.internal
-  Proxy port:  5432
-  Postgres port:  5433
-  Connection string: postgres://postgres:p8C9PwQRxrxzj5g@r1telegram-db.internal:5432
-'''
+
 
 
 
