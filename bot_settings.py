@@ -1,22 +1,4 @@
 
-'''
-#for deployment
-script_id = 'AKfycbylIxeQohmbDl2ZPXw1BI7ES0IytBx1KDaQ5vFNz3y1vpBkC-fBiSGpg8zKTG2l8fes'
-assert (API_TOKEN := os.environ.get('TOKEN'))
-assert (REDIS_URL := os.environ.get('REDIS_URL'))
-assert (DATABASE_URL := os.environ.get('DATABASE_URL'))
-storage = RedisStorage_custom.from_url(REDIS_URL)
-bot = Bot(token=API_TOKEN, parse_mode="HTML")
-dp = Dispatcher(storage=storage)
-openai.api_key = "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"
-database_url = urlparse(DATABASE_URL)
-conn = psycopg2.connect(
-    host=database_url.hostname,
-    user=database_url.username,
-    password=database_url.password,
-    port=database_url.port)
-'''
-
 import logging
 import aiogram.utils.markdown as md
 import asyncio
@@ -52,7 +34,7 @@ from classes_modified import *
 
 '''
 #for deployment
-script_id = ''
+assert (script_id := os.environ.get('SCRIPT_ID'))
 assert (API_TOKEN := os.environ.get('TOKEN'))
 assert (REDIS_URL := os.environ.get('REDIS_URL'))
 assert (DATABASE_URL := os.environ.get('DATABASE_URL'))

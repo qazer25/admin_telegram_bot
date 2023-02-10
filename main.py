@@ -37,9 +37,18 @@ from classes_modified import *
 from main_menu_settings import *
 from admin_settings import *
 from bot_settings import *
+from database_admin_settings import *
 # Configure logging
 logging.basicConfig(level=logging.INFO)
 
+'''
+  Username:    postgres
+  Password:    p8C9PwQRxrxzj5g
+  Hostname:    r1telegram-db.internal
+  Proxy port:  5432
+  Postgres port:  5433
+  Connection string: postgres://postgres:p8C9PwQRxrxzj5g@r1telegram-db.internal:5432
+'''
 
 
 
@@ -251,11 +260,12 @@ async def record(message: types.Message, state: FSMContext):
     if result == 'Done' and result1 == 'Done':
         await message.answer_sticker("CAACAgIAAxkBAAEc7sFj4zzxzAdZkBxx41Zv1M2dwpaBbAACNhMAAujW4hK5o_LnYoJUMi4E")
         inline_keyboard = await build_inline_keyboard(["<< Back <<"])
-        await message.answer(text="Added!", reply_markup=inline_keyboard)
+        await message.answer(text="Okay! I have remembered you!", reply_markup=inline_keyboard)
         
     else:
+        await message.answer_sticker("CAACAgIAAxkBAAEdBEFj5d25tC2nsDdYHNhXyUJbKAEf7wACIRMAAujW4hL2_bx62eekiS4E")
         inline_keyboard = await build_inline_keyboard(["<< Back <<"])
-        await message.answer(text="Already Added!", reply_markup=inline_keyboard)
+        await message.answer(text="But I have already remembered you!", reply_markup=inline_keyboard)
     await state.set_state(State_menu.starting_callback)
 
 
@@ -289,14 +299,7 @@ async def admin_menu_2(callback_query: types.CallbackQuery, state: FSMContext):
 async def admin_menu_3(callback_query: types.CallbackQuery, state: FSMContext):
     callback = callback_query.data
     if callback == "Edit Database":
-        result = await get_column_titles_from_table(conn=conn, table_name="chat_details", database_url=DATABASE_URL)
-        ls = []
-        for x in result:
-            ls.append(x[0])
-        ls.append("<< Back <<")
-        inline_keyboard = await build_inline_keyboard(ls)
-        await callback_query.message.edit_text("Choose column to edit", reply_markup=inline_keyboard)
-        await state.set_state(State_menu.database_columns)
+        await database_chatid_columns(callback_query, state, conn, DATABASE_URL)
 
 
     elif callback == "Refresh Form":
@@ -350,33 +353,13 @@ async def chooosing_database_chatid(callback_query: types.CallbackQuery, state: 
     else:
         data = {}
         data["column"] = callback
-        result = await get_one_column_from_table(conn=conn, table_name="chat_details",condition= "chatid," + callback,database_url=DATABASE_URL)
-        string = "Results: \n"
-        ls = []
-        for x in result:
-            if x[1] == None:
-                x = (x[0], 'Nil')
-            string += x[0] + "   " +x[1] + "\n"
-            ls.append(x[0])
-        ls.append("<< Back <<")
-        inline_keyboard = await build_inline_keyboard(ls)
-        await callback_query.message.answer(string)
-        await callback_query.message.answer("Choose target ID", reply_markup=inline_keyboard)
-        await state.set_data(data)
-        await state.set_state(State_menu.database_key)
+        await database_chatid_id(callback_query, state, data, DATABASE_URL)
         
 @router.callback_query(State_menu.database_key)
 async def editing_column(callback_query: types.CallbackQuery, state: FSMContext):
     callback = callback_query.data
     if callback == "<< Back <<":
-        result = await get_column_titles_from_table(conn=conn, table_name="chat_details", database_url=DATABASE_URL)
-        ls = []
-        for x in result:
-            ls.append(x[0])
-        ls.append("<< Back <<")
-        inline_keyboard = await build_inline_keyboard(ls)
-        await callback_query.message.edit_text("Choose column to edit", reply_markup=inline_keyboard)
-        await state.set_state(State_menu.database_columns)
+        await database_chatid_columns(callback_query, state, conn, DATABASE_URL)
 
     else:
         data = await state.get_data()
@@ -389,24 +372,15 @@ async def editing_column(callback_query: types.CallbackQuery, state: FSMContext)
 async def write_database(message: types.Message, state: FSMContext):
     if message.text == "Back":
         data = await state.get_data()
-        result = await get_one_column_from_table(conn=conn, table_name="chat_details",condition="chatid," + data["column"],database_url=DATABASE_URL)
-        string = "Results:\n"
-        ls = []
-        for x in result:
-            if x[1] == None:
-                x = (x[0], 'Nil')
-            string += x[0] + '   ' + x[1] + "\n"
-            ls.append(x[0])
-        ls.append("<< Back <<")
-        inline_keyboard = build_inline_keyboard(ls)
-        await message.answer(string)
-        await message.answer("Choose target ID", reply_markup=inline_keyboard)
-        await state.set_data(data)
-        await state.set_state(State_menu.database_key)
+        await database_chatid_id(message, state, data, DATABASE_URL)
     
     else:
         data = await state.get_data()
-        await update_in_table(conn=conn, table_name="chat_details", condition="chatid", parameter=data["key"], dict={data["column"]:message.text}, database_url=DATABASE_URL)
+        if data["column"] == "chatid" and message.text == "DELETE ALL":
+            await delete_from_table(conn=conn, table_name="chat_details", condition="chatid", parameter=data["key"], database_url=DATABASE_URL)
+            await delete_from_table(conn=conn, table_name="wishes_reminder", condition="chatid", parameter=data["key"], database_url=DATABASE_URL)
+        else:
+            await update_in_table(conn=conn, table_name="chat_details", condition="chatid", parameter=data["key"], dict={data["column"]:message.text}, database_url=DATABASE_URL)
         inline_keyboard = await build_inline_keyboard(['<< Back <<'])
         await message.answer("Change made!", reply_markup=inline_keyboard)
 
@@ -414,18 +388,7 @@ async def write_database(message: types.Message, state: FSMContext):
 async def back_write_database(callback_query: types.CallbackQuery, state: FSMContext):
     if callback_query.data == "<< Back <<":
         data = await state.get_data()
-        result = await get_one_column_from_table(conn=conn, table_name="chat_details",condition= "chatid," + data["column"],database_url=DATABASE_URL)
-        string = ""
-        ls = []
-        for x in result:
-            string += x[0] + "  " +x[1] + "\n"
-            ls.append(x[0])
-        ls.append("<< Back <<")
-        inline_keyboard = await build_inline_keyboard(ls)
-        await callback_query.message.edit_text(string)
-        await callback_query.message.answer("Choose target ID", reply_markup=inline_keyboard)
-        await state.set_data(data)
-        await state.set_state(State_menu.database_key)
+        await database_chatid_id(callback_query, state, data, DATABASE_URL)
 
 
 #others
