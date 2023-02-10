@@ -36,51 +36,11 @@ import time
 from classes_modified import *
 from main_menu_settings import *
 from admin_settings import *
+from bot_settings import *
 # Configure logging
 logging.basicConfig(level=logging.INFO)
 
-'''
-  Username:    postgres
-  Password:    p8C9PwQRxrxzj5g
-  Hostname:    r1telegram-db.internal
-  Proxy port:  5432
-  Postgres port:  5433
-  Connection string: postgres://postgres:p8C9PwQRxrxzj5g@r1telegram-db.internal:5432
-'''
 
-
-'''
-#for deployment
-script_id = ''
-assert (API_TOKEN := os.environ.get('TOKEN'))
-assert (REDIS_URL := os.environ.get('REDIS_URL'))
-assert (DATABASE_URL := os.environ.get('DATABASE_URL'))
-storage = RedisStorage_custom.from_url(REDIS_URL)
-bot = Bot(token=API_TOKEN, parse_mode="HTML")
-dp = Dispatcher(storage=storage)
-database_url = urlparse(DATABASE_URL)
-conn = psycopg2.connect(
-    host=database_url.hostname,
-    user=database_url.username,
-    password=database_url.password,
-    port=database_url.port)
-'''
-
-
-#for testing
-script_id = ''
-API_TOKEN = ''
-REDIS_URL = ''
-DATABASE_URL = ""
-storage = RedisStorage_custom.from_url(REDIS_URL)
-bot = Bot(token=API_TOKEN, parse_mode="HTML")
-dp = Dispatcher(storage=storage)
-database_url = urlparse(DATABASE_URL)
-conn = psycopg2.connect(
-    host=database_url.hostname,
-    user=database_url.username,
-    password=database_url.password,
-    port=database_url.port)
 
 
 
