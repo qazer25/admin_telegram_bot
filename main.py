@@ -21,6 +21,7 @@ from aiogram.methods.edit_message_text import EditMessageText
 from aiogram.methods.edit_message_reply_markup import EditMessageReplyMarkup
 from aiogram.methods.send_chat_action import SendChatAction
 from aiogram.dispatcher.event.event import EventObserver
+from aiogram.client.session.base import BaseSession
 import os
 from google_functions import *
 from keyboard import *
@@ -38,6 +39,7 @@ from main_menu_settings import *
 from admin_settings import *
 from bot_settings import *
 from database_admin_settings import *
+import random
 # Configure logging
 logging.basicConfig(level=logging.INFO)
 
@@ -62,6 +64,10 @@ async def send_welcome(message: types.Message, state: FSMContext):
     This handler will be called when user sends `/start` or `/help` command
     """
 
+@router.message(Command(commands=["restart"]))
+async def reset_state(message: types.Message, state: FSMContext):
+    await message.answer("Clear! Press or type /start again!", reply_markup=ReplyKeyboardRemove())
+    await state.clear()
 
 #results of choice
 @router.callback_query(State_menu.starting)
@@ -122,12 +128,40 @@ async def choosing(callback_query: types.CallbackQuery, state: FSMContext):
         await message.edit_reply_markup(reply_markup=InlineKeyboardMarkup(inline_keyboard=[]))
         await message.edit_text(text="Enter your first name")
     
+    elif callback == "Edit Your Details":
+        await view_details(callback_query, state, conn, DATABASE_URL)
 
+
+#edit_details
+@router.callback_query(State_menu.view_details)
+async def view_details_menu(callback_query: types.CallbackQuery, state: FSMContext):
+    if callback_query.data == "<< Back <<":
+        await send_main_menu_settings(callback_query, state)
+    
+    else:
+        data = {}
+        data["column"] = callback_query.data
+        await callback_query.message.edit_text("Enter in your new details(type 'back' to go back to previous menu)")
+        await state.set_data(data)
+        await state.set_state(State_menu.edit_details)
+
+@router.message(State_menu.edit_details)
+async def edit_details_menu(message: types.Message, state: FSMContext):
+    if message.text.lower() == "back":
+        await view_details(message, state,conn,DATABASE_URL)
+    else:
+        data = await state.get_data()
+        await update_in_table(conn=conn, table_name="chat_details", condition="chatid", parameter=str(message.chat.id), dict={data["column"]:message.text}, database_url=DATABASE_URL)
+        inline_keyboard = await build_inline_keyboard(["<< Back <<"])
+        await message.answer_sticker("CAACAgIAAxkBAAEc7sFj4zzxzAdZkBxx41Zv1M2dwpaBbAACNhMAAujW4hK5o_LnYoJUMi4E")
+        await message.answer("Change made! I will remember the new info!", reply_markup=inline_keyboard)        
  
-@router.message(Command(commands=["restart"]))
-async def reset_state(message: types.Message, state: FSMContext):
-    await message.answer("Clear! Press or type /start again!", reply_markup=ReplyKeyboardRemove())
-    await state.clear()
+@router.callback_query(State_menu.edit_details)
+async def view_details_menu_return(callback_query: types.CallbackQuery, state: FSMContext):
+    if callback_query.data == "<< Back <<":
+        await view_details(callback_query, state, conn,DATABASE_URL)
+
+
 
 
 
@@ -159,7 +193,7 @@ async def sf(message: types.Message, state: FSMContext):
         else:
             await message.answer_sticker("CAACAgIAAxkBAAEc7sNj4z1lHz20eNuC1-e7114fe4pNpAAC3hMAAujW4hJymOg_Xmxaui4E")
             inline_keyboard = await build_inline_keyboard(["<< Back <<"])
-            await message.answer('Error! Unable to submit, you may have entered invalid answer! Please try again!', reply_markup=inline_keyboard)
+            await message.answer('Sorry! I cannot submit your service feedback, you may have entered invalid answers for the questions! Please try again and make sure to use the custom keyboard when prompted!', reply_markup=inline_keyboard)
             await state.set_state(State_menu.starting_callback)
 
     else:
@@ -277,7 +311,7 @@ async def init_database_admin(message: types.Message, state: FSMContext):
 
 @router.message(Command(commands=["admin"]))
 async def admin_menu(message: types.Message, state: FSMContext):
-    check = await get_from_table(conn=conn, table_name="admin", chatid=str(message.chat.id), database_url = DATABASE_URL)
+    check = await check_id_in_table(conn=conn, table_name="admin", parameter=str(message.chat.id), database_url = DATABASE_URL)
     if check == False:
         await message.answer("I'm sorry but you're not an admin for this bot! Ask other admins to add for you!")
         return
@@ -357,7 +391,7 @@ async def editing_column(callback_query: types.CallbackQuery, state: FSMContext)
     else:
         data = await state.get_data()
         data["key"] = callback
-        await callback_query.message.edit_text("Type the new value", reply_markup=InlineKeyboardMarkup(inline_keyboard=[]))
+        await callback_query.message.edit_text("Type the new value ", reply_markup=InlineKeyboardMarkup(inline_keyboard=[]))
         await state.set_state(State_menu.database_write)
         await state.set_data(data)
 
@@ -399,14 +433,20 @@ async def echo(message: types.Message, state: FSMContext):
     await echo_back(message, state)
 
 async def echo_back(message, state):
-    await message.answer("I can't remember what you're doing! Please press /start or use the inline keyboard to send service feedback or wishes!")
+    if "thank" in message.text.lower() or "ty" in message.text.lower():
+        ls = ["CAACAgIAAxkBAAEdByBj5iobeaCQqZR8HQYWE_jO9Lf4LAAC0xMAAujW4hKlgAmiWhe0yS4E","CAACAgIAAxkBAAEdByJj5iodPGIUib_kfCQ_qkBKmWF3XgACzBMAAujW4hJDLteTQiPHXS4E","CAACAgIAAxkBAAEdBx5j5ioH17Ws2kllZBrmHSuNrkfnPAAC2RMAAujW4hJ7hcSWXXkbSC4E","CAACAgIAAxkBAAEdBxRj5imVdkGOp97cjF-lCiE1wB1HwwACNxMAAujW4hJwl6j8RxqETi4E","CAACAgIAAxkBAAEdBn1j5hzoBavZw8RNLVD7vaGnq8nPYwACzxMAAujW4hJQNc1MYX6kQy4E", "CAACAgIAAxkBAAEdBn9j5hzp5udCgMSIBjbCc72hX7tk1wAC0BMAAujW4hLdTZBHdzssey4E"]
+        sticker = ls[random.randint(0, len(ls) - 1)]
+        await message.answer_sticker(sticker)
+    else:
+        await message.answer("Oops I forgot what you're doing! Please press /start or use the inline keyboard to send service feedback or wishes!")
 
 async def sf_reminder():
     result = await get_all_from_table(conn, "sf_reminder", DATABASE_URL)
     for x in result:
         if x[1] == "No":
+            await bot.send_sticker(chat_id=x[0], sticker="CAACAgIAAxkBAAEdBW1j5gABA3wYp8mBCS-26uhU8EkapE0AAh8TAALo1uISyyJQSCYXIHIuBA")
             await bot.send_message(chat_id=x[0], text="Hi please send service feedback ty!")
-        time.sleep(1)
+        await asyncio.sleep(3)
 
 async def wish_reminder():
     result = await get_all_from_table(conn, "wishes_reminder", DATABASE_URL)
@@ -417,17 +457,22 @@ async def wish_reminder():
     for x in result:
         a = json.loads(x[2])
         if a != []:
+            await bot.send_sticker(chat_id=x[0], sticker="CAACAgIAAxkBAAEdBW1j5gABA3wYp8mBCS-26uhU8EkapE0AAh8TAALo1uISyyJQSCYXIHIuBA")
             string_text = 'Wishes Reminders~~\n\n'
             for y in a:
                 soft_deadline = wish_details[y][2]
                 string_text += y + ' - ' + soft_deadline + '\n'
             
             await bot.send_message(chat_id=x[0], text=(string_text + '\nPlease send by the respective deadlines if you have not done so! Thanks!'))
-            time.sleep(1)
+            await asyncio.sleep(3)
 
 async def refresh_sf_reminder():
     await update_all_in_table(conn, table_name="sf_reminder", condition="done", parameter="No", database_url = DATABASE_URL)
 
+async def refresh_connections():
+    await storage.set_data_global(key="check", data="0")
+    await add_into_table(conn=conn, table_name="admin", dict={"chatid":"0"}, database_url=DATABASE_URL)
+    print(await bot.me())
 
 async def schedule_tasks():
     aioschedule.every().sunday.at("04:00").do(sf_reminder)
@@ -439,6 +484,8 @@ async def schedule_tasks():
     aioschedule.every().day.at("17:30").do(renew_wishes_database, script_id = script_id, database_url=DATABASE_URL, redis_url = REDIS_URL)
     aioschedule.every().day.at("02:00").do(wish_reminder)
     aioschedule.every().day.at("12:00").do(wish_reminder)
+
+    aioschedule.every(15).minutes.do(refresh_connections)
     while True:
         await aioschedule.run_pending()
         await asyncio.sleep(1)

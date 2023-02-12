@@ -47,3 +47,4 @@ async def send_admin_settings(message, state):
         inline_keyboard = await build_inline_keyboard(admin_menu_keyboard)
         await message.message.edit_text("Admin Menu \n Proceed at your own risk!", reply_markup=inline_keyboard)
         await state.set_state(State_menu.admin_menu)
+

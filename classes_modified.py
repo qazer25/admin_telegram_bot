@@ -79,6 +79,8 @@ class State_menu(StatesGroup):
     remember_me_name = State()
     remember_me_birthday = State()
     remember_me_housing = State()
+    view_details = State()
+    edit_details = State()
     admin_menu = State()
     admin_menu2 = State()
     add_admin = State()
@@ -86,6 +88,7 @@ class State_menu(StatesGroup):
     database_columns = State()
     database_key = State()
     database_write = State()
+
     
 def main():
     pass

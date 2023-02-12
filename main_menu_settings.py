@@ -39,15 +39,59 @@ from classes_modified import *
 async def send_main_menu_settings(message, state):
     if type(message) == types.Message:
         await message.answer_sticker("CAACAgIAAxkBAAEc7r1j4zwg8DSy3wnrdeWHSg5qA9N5KgACJhMAAujW4hIfQm23Xqw9ZC4E")
-        inline_keyboard = await build_inline_keyboard(['Service Feedback', 'Wishes', 'Remind Me SF!', 'Remember Me!'])
-        await message.answer('Welcome to /Name/ Bot!\n\n Please be patient with me!\nIf you feel like I\'m not listening to you, or want to get out of stuff, type /restart! \n\n If you have encountered any bugs, please inform my creator at @/name/!', reply_markup=inline_keyboard)
+        inline_keyboard = await build_inline_keyboard(['Service Feedback', 'Wishes', 'Remind Me SF!', 'Remember Me!', 'Edit Your Details'])
+        await message.answer('Welcome to Relentless 1 Bot!\n\n Please be patient with me!\nIf you feel like I\'m not listening to you, or want to get out of stuff, type /restart! \n\n If you have encountered any bugs, please inform my creator at @qazer25!', reply_markup=inline_keyboard)
         await (state.set_state(State_menu.starting))
     elif type(message) == types.CallbackQuery:
-        inline_keyboard = await build_inline_keyboard(['Service Feedback', 'Wishes', 'Remind Me SF!', 'Remember Me!'])
-        await message.message.edit_text('Welcome to /Name/ Bot!\n\n Please be patient with me!\nIf you feel like I\'m not listening to you, or want to get out of stuff, type /restart! \n\nIf you have encountered any bugs, please inform my creator at @/name/!', reply_markup=inline_keyboard)
+        inline_keyboard = await build_inline_keyboard(['Service Feedback', 'Wishes', 'Remind Me SF!', 'Remember Me!','Edit Your Details'])
+        await message.message.edit_text('Welcome to Relentless 1 Bot!\n\n Please be patient with me!\nIf you feel like I\'m not listening to you, or want to get out of stuff, type /restart! \n\nIf you have encountered any bugs, please inform my creator at @qazer25!', reply_markup=inline_keyboard)
         await (state.set_state(State_menu.starting))
 
 
+async def view_details(message, state, conn, database_url):
+    if type(message) == types.CallbackQuery:
+        check = await check_id_in_table(conn, "chat_details", str(message.message.chat.id), database_url)
+        if check == True:
+            callback_query = message
+            result = await get_from_table(conn=conn, table_name="chat_details", chatid=str(callback_query.message.chat.id), database_url=database_url)
+            columns = await get_column_titles_from_table(conn=conn, table_name="chat_details", database_url=database_url)
+            string = "This is what I can remember about you! \n\n"
+            ls = []
+            for x in range(len(columns)):
+                if columns[x][0] != "chatid" and columns[x][0] != "userid":
+                    string += columns[x][0] + ': ' + result[0][x] + "\n"
+                    ls.append(columns[x][0])
+            string += "\n What do you want me to change?"
+            ls.append("<< Back <<")
+            inline_keyboard = await build_inline_keyboard(ls)
+            await callback_query.message.edit_text(string, reply_markup=inline_keyboard)
+            await state.set_state(State_menu.view_details)
+        else:
+            inline_keyboard = await build_inline_keyboard(["<< Back <<"])
+            await message.message.edit_text("Sorry who are you again? Please press 'Remember Me!' first!", reply_markup=inline_keyboard)
+            await state.set_state(State_menu.starting_callback)
+    elif type(message) == types.Message:
+        
+        check = await check_id_in_table(conn, "chat_details", str(message.chat.id), database_url)
+        if check == True:
+            result = await get_from_table(conn=conn, table_name="chat_details", chatid=str(message.chat.id), database_url=database_url)
+            columns = await get_column_titles_from_table(conn=conn, table_name="chat_details", database_url=database_url)
+            string = "This is what I can remember about you! \n\n"
+            ls = []
+            for x in range(len(columns)):
+                if columns[x][0] != "chatid" and columns[x][0] != "userid":
+                    string += columns[x][0] + ': ' + result[0][x] + "\n"
+                    ls.append(columns[x][0])
+            string += "\n What do you want me to change?"
+            ls.append("<< Back <<")
+            inline_keyboard = await build_inline_keyboard(ls)
+            await message.answer(string, reply_markup=inline_keyboard)
+            await state.set_state(State_menu.view_details)
+        else:
+            inline_keyboard = await build_inline_keyboard(["<< Back <<"])
+            await message.answer("Sorry who are you again? Please press 'Remember Me!' first!", reply_markup=inline_keyboard)
+            await state.set_state(State_menu.starting_callback)
+        
 def main():
     pass
 

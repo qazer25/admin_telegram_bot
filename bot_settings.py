@@ -32,12 +32,18 @@ import aioschedule
 from classes_modified import *
 
 
-'''
-#for deployment
-assert (script_id := os.environ.get('SCRIPT_ID'))
-assert (API_TOKEN := os.environ.get('TOKEN'))
-assert (REDIS_URL := os.environ.get('REDIS_URL'))
-assert (DATABASE_URL := os.environ.get('DATABASE_URL'))
+def check_for_assert(envtarget, backup=None):
+    try:
+        assert (target := os.environ.get(envtarget))
+        return target
+    except AssertionError:
+        return backup
+
+
+script_id = check_for_assert("SCRIPT_ID", '')
+API_TOKEN = check_for_assert("TOKEN", '')
+REDIS_URL = check_for_assert("REDIS_URL", '')
+DATABASE_URL = check_for_assert("DATABASE_URL", "")
 storage = RedisStorage_custom.from_url(REDIS_URL)
 bot = Bot(token=API_TOKEN, parse_mode="HTML")
 dp = Dispatcher(storage=storage)
@@ -47,21 +53,7 @@ conn = psycopg2.connect(
     user=database_url.username,
     password=database_url.password,
     port=database_url.port)
-'''
-#for testing
-script_id = ''
-API_TOKEN = ''
-REDIS_URL = ''
-DATABASE_URL = ""
-storage = RedisStorage_custom.from_url(REDIS_URL)
-bot = Bot(token=API_TOKEN, parse_mode="HTML")
-dp = Dispatcher(storage=storage)
-database_url = urlparse(DATABASE_URL)
-conn = psycopg2.connect(
-    host=database_url.hostname,
-    user=database_url.username,
-    password=database_url.password,
-    port=database_url.port)
+
 
 def main():
     pass

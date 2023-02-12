@@ -46,7 +46,7 @@ async def database_chatid_columns(message, state, conn, database_url):
             ls.append(x[0])
         ls.append("<< Back <<")
         inline_keyboard = await build_inline_keyboard(ls)
-        await message.message.edit_text("Choose column to edit", reply_markup=inline_keyboard)
+        await message.message.edit_text("Choose column to edit (if you wish to delete a id entry, type DELETE ALL in the chatid section)", reply_markup=inline_keyboard)
         await state.set_state(State_menu.database_columns)
     
     elif type(message) == types.Message:
