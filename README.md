@@ -22,7 +22,7 @@ install pip3 (https://blog.eldernode.com/install-pip3-on-windows/)
 Type pip --version in terminal  
 (If not found or errors return back to previous step)  
 install pipenv (enter *pip install --user pipenv* into cmd)  
-enter *pipenv install*  
+enter *pipenv install -r requirements.txt*  
 enter *pipenv run python main.py*  
 (Should not be able to run yet)  
 
