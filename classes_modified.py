@@ -22,6 +22,9 @@ from aiogram.methods.edit_message_reply_markup import EditMessageReplyMarkup
 from aiogram.methods.send_chat_action import SendChatAction
 from aiogram.dispatcher.event.event import EventObserver
 import os
+
+from redis.asyncio.client import Redis
+from redis.asyncio.connection import ConnectionPool
 from google_functions import *
 from keyboard import *
 import openai

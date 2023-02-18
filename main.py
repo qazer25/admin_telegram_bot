@@ -123,10 +123,15 @@ async def choosing(callback_query: types.CallbackQuery, state: FSMContext):
         await state.set_state(State_menu.starting_callback)
 
     elif callback == "Remember Me!":
-        await state.set_state(State_menu.remember_me_name)
         message = callback_query.message
-        await message.edit_reply_markup(reply_markup=InlineKeyboardMarkup(inline_keyboard=[]))
-        await message.edit_text(text="Enter your first name")
+        result = await check_id_in_table(conn, "chat_details", str(callback_query.message.chat.id), database_url=DATABASE_URL)
+        if result == True:
+            inline_keyboard = await build_inline_keyboard(["<< Back <<"])
+            await message.edit_text("But I remembered you already!", reply_markup=inline_keyboard)
+            await state.set_state(State_menu.starting_callback)
+        elif result == False:
+            await state.set_state(State_menu.remember_me_name)
+            await message.edit_text(text="Enter your first name",reply_markup=InlineKeyboardMarkup(inline_keyboard=[]))
     
     elif callback == "Edit Your Details":
         await view_details(callback_query, state, conn, DATABASE_URL)
@@ -372,6 +377,8 @@ async def adding_admin(callback_query: types.CallbackQuery, state: FSMContext):
             await callback_query.message.edit_text(("Done! {} deleted!").format(callback_query.data), reply_markup=inline_keyboard)
             await state.set_state(State_menu.admin_menu2)
 
+
+#database_admin
 @router.callback_query(State_menu.database_columns)
 async def chooosing_database_chatid(callback_query: types.CallbackQuery, state: FSMContext):
     callback = callback_query.data
@@ -467,12 +474,28 @@ async def wish_reminder():
             await asyncio.sleep(3)
 
 async def refresh_sf_reminder():
+    ls = await import_form(script_id)
+    await asyncio.gather(storage.set_data_global(key = 'sf_showing', data = ls[0]),
+    storage.set_data_global(key = 'sf_title', data = ls[1])
+    , storage.set_data_global(key = 'sf_type', data = ls[2])
+    ,storage.set_data_global(key = 'sf_entry', data = ls[3])
+    ,storage.set_data_global(key = 'sf_choice', data = ls[4]))
     await update_all_in_table(conn, table_name="sf_reminder", condition="done", parameter="No", database_url = DATABASE_URL)
 
 async def refresh_connections():
-    await storage.set_data_global(key="check", data="0")
-    await add_into_table(conn=conn, table_name="admin", dict={"chatid":"0"}, database_url=DATABASE_URL)
-    print(await bot.me())
+    try:
+        await storage.set_data_global(key="check", data="0")
+        await add_into_table(conn=conn, table_name="admin", dict={"chatid":"0"}, database_url=DATABASE_URL)
+        await bot.me()
+        logging.info("All connections working")
+    
+    except:
+        date_now = datetime.now() + timedelta(hours=8)
+        logging.info("Error some connections are not working as of " + date_now)
+        if creator_id != '':
+            await bot.send_message(creator_id, "Error some connections are not working as of " + date_now.strftime("%m/%d/%Y, %H:%M:%S"))
+
+
 
 async def schedule_tasks():
     aioschedule.every().sunday.at("04:00").do(sf_reminder)
@@ -485,7 +508,7 @@ async def schedule_tasks():
     aioschedule.every().day.at("02:00").do(wish_reminder)
     aioschedule.every().day.at("12:00").do(wish_reminder)
 
-    aioschedule.every(15).minutes.do(refresh_connections)
+    aioschedule.every(20).minutes.do(refresh_connections)
     while True:
         await aioschedule.run_pending()
         await asyncio.sleep(1)
@@ -496,7 +519,6 @@ async def on_startup():
     asyncio.create_task(schedule_tasks())
     date_now = datetime.now() + timedelta(hours=8)
     logging.info(date_now)
-
 
 @observer_shutdown()
 async def on_shutdown():

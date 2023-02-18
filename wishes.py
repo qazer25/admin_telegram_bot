@@ -25,6 +25,7 @@ from keyboard import *
 from connect_db import *
 from datetime import *
 from aioredis import *
+from bot_settings import *
 import json
 import copy
 async def renew_wishes_database(script_id, database_url, redis_url):
@@ -36,7 +37,7 @@ async def renew_wishes_database(script_id, database_url, redis_url):
     password=database_url.password,
     port=database_url.port)
     bot_storage = await Redis.from_url(redis_url)
-
+    string_to_send = "Hi the following wishes are done\n\n"
     #checking all birthdays a month from now
     result = await get_all_from_table(conn, "chat_details", database_url)
     result1 = await get_one_column_from_table(conn, "birthdays", "name", database_url)
@@ -93,6 +94,13 @@ async def renew_wishes_database(script_id, database_url, redis_url):
     
 
             await update_in_table(conn, "wishes_reminder", "chatid", y[0], {"wishes_not_done":json.dumps(not_done_wishes1)}, database_url)
+        
+        #for reminding when its done!
+        if removing_wishes != [] and birthday_ic_id != "":
+            for z in removing_wishes:
+                url_link = google_function(script_id=script_id, function="get_sheet_url", parameters=z)
+                string_to_send += z + ": " + url_link + '\n'
+            await bot.send_message(birthday_ic_id, string_to_send)
         await bot_storage.set("current_brithday_wishes", json.dumps(count))
         await bot_storage.close()
         conn.close()

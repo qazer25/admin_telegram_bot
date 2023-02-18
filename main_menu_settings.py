@@ -55,12 +55,22 @@ async def view_details(message, state, conn, database_url):
             callback_query = message
             result = await get_from_table(conn=conn, table_name="chat_details", chatid=str(callback_query.message.chat.id), database_url=database_url)
             columns = await get_column_titles_from_table(conn=conn, table_name="chat_details", database_url=database_url)
+            check_names_to_wishes_not_proper = await get_one_column_from_table(conn=conn, table_name="birthdays", condition="chatid", database_url=database_url)
+            check_names_to_wishes = []
+            for x in check_names_to_wishes_not_proper:
+                check_names_to_wishes.append(x[0])
             string = "This is what I can remember about you! \n\n"
             ls = []
             for x in range(len(columns)):
                 if columns[x][0] != "chatid" and columns[x][0] != "userid":
-                    string += columns[x][0] + ': ' + result[0][x] + "\n"
-                    ls.append(columns[x][0])
+                    result_to_string = result[0][x]
+                    if result_to_string == None:
+                        result_to_string = "Nil"
+                    if str(callback_query.message.chat.id) in check_names_to_wishes and columns[x][0] == 'name':
+                        string += columns[x][0] + ': ' + result_to_string + " (not editable at the moment!)\n"
+                    else:
+                        string += columns[x][0] + ': ' + result_to_string + "\n"
+                        ls.append(columns[x][0])
             string += "\n What do you want me to change?"
             ls.append("<< Back <<")
             inline_keyboard = await build_inline_keyboard(ls)
@@ -76,12 +86,23 @@ async def view_details(message, state, conn, database_url):
         if check == True:
             result = await get_from_table(conn=conn, table_name="chat_details", chatid=str(message.chat.id), database_url=database_url)
             columns = await get_column_titles_from_table(conn=conn, table_name="chat_details", database_url=database_url)
+            check_names_to_wishes_not_proper = await get_one_column_from_table(conn=conn, table_name="birthdays", condition="chatid", database_url=database_url)
+            check_names_to_wishes = []
+            for x in check_names_to_wishes_not_proper:
+                check_names_to_wishes.append(x[0])
             string = "This is what I can remember about you! \n\n"
             ls = []
+            
             for x in range(len(columns)):
                 if columns[x][0] != "chatid" and columns[x][0] != "userid":
-                    string += columns[x][0] + ': ' + result[0][x] + "\n"
-                    ls.append(columns[x][0])
+                    result_to_string = result[0][x]
+                    if result_to_string == None:
+                        result_to_string = "Nil"
+                    if str(message.chat.id) in check_names_to_wishes and columns[x][0] == 'name':
+                        string += columns[x][0] + ': ' + result_to_string + " (not editable at the moment!)\n"
+                    else:
+                        string += columns[x][0] + ': ' + result_to_string + "\n"
+                        ls.append(columns[x][0])
             string += "\n What do you want me to change?"
             ls.append("<< Back <<")
             inline_keyboard = await build_inline_keyboard(ls)

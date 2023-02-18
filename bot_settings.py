@@ -25,7 +25,6 @@ from aiogram.dispatcher.event.event import EventObserver
 import os
 from google_functions import *
 from keyboard import *
-import openai
 import psycopg2
 from urllib.parse import urlparse
 import aioschedule
@@ -39,8 +38,9 @@ def check_for_assert(envtarget, backup=None):
     except AssertionError:
         return backup
 
-
+creator_id = ''
 script_id = check_for_assert("SCRIPT_ID", '')
+birthday_ic_id = ""
 API_TOKEN = check_for_assert("TOKEN", '')
 REDIS_URL = check_for_assert("REDIS_URL", '')
 DATABASE_URL = check_for_assert("DATABASE_URL", "")
